@@ -40,12 +40,14 @@ export interface DocBase {
 export type Document = DocWithErrors | DocWithMeta | DocWithData;
 export type SingleResourceDoc<
 	T extends string = string,
-	A extends Attributes = Attributes
-> = DocWithData<ResourceObject<T, A>>;
+	A extends Attributes = Attributes,
+	R extends Relationships = Relationships
+> = DocWithData<ResourceObject<T, A, R>>;
 export type CollectionResourceDoc<
 	T extends string = string,
-	A extends Attributes = Attributes
-> = DocWithData<Array<ResourceObject<T, A>>>;
+	A extends Attributes = Attributes,
+	R extends Relationships = Relationships
+> = DocWithData<Array<ResourceObject<T, A, R>>>;
 
 // an object describing the server’s implementation
 export interface ImplementationInfo {
@@ -53,11 +55,15 @@ export interface ImplementationInfo {
 	meta?: MetaObject;
 }
 
-interface Attribute  {
-	[k: string]: JSON.Value ;
+interface Attribute {
+	[k: string]: JSON.Value;
 }
 
 type Attributes = Partial<Attribute>;
+
+interface Relationships {
+	[k: string]: RelationshipObject<string>;
+}
 
 export type Link = string | { href: string; meta?: MetaObject };
 
@@ -93,53 +99,55 @@ export interface ErrorObject {
 
 export type PrimaryData<
 	T extends string = string,
-	A extends AttributesObject = AttributesObject
-> = ResourceObject<T, A> | Array<ResourceObject<T, A>>;
+	A extends AttributesObject = AttributesObject,
+	R extends RelationshipsObject = RelationshipsObject
+> = ResourceObject<T, A> | Array<ResourceObject<T, A, R>>;
 
 export interface ResourceObject<
 	T extends string = string,
-	A extends AttributesObject = AttributesObject
+	A extends AttributesObject = AttributesObject,
+	R extends RelationshipsObject = RelationshipsObject
 > {
 	id?: string;
 	type: T;
 	attributes?: AttributesObject<A>;
-	relationships?: RelationshipsObject;
+	relationships?: RelationshipsObject<R>;
 	links?: Links;
 	meta?: MetaObject;
 }
 
-export interface ResourceIdentifierObject {
+export interface ResourceIdentifierObject<RELATIONSHIP_TYPE extends string> {
 	id: string;
-	type: string;
+	type: RELATIONSHIP_TYPE;
 	meta?: MetaObject;
 }
 
-export type ResourceLinkage =
+export type ResourceLinkage<RELATIONSHIP_TYPE extends string> =
 	| null
 	| never[]
-	| ResourceIdentifierObject
-	| ResourceIdentifierObject[];
+	| ResourceIdentifierObject<RELATIONSHIP_TYPE>
+	| ResourceIdentifierObject<RELATIONSHIP_TYPE>[];
 
 export interface RelationshipsWithLinks {
 	links: Links;
 }
 
-export interface RelationshipsWithData {
-	data: ResourceLinkage;
+export interface RelationshipsWithData<RELATIONSHIP_TYPE extends string> {
+	data: ResourceLinkage<RELATIONSHIP_TYPE>;
 }
 
 export interface RelationshipsWithMeta {
 	meta: MetaObject;
 }
 
-export type RelationshipObject =
-	| RelationshipsWithData
+export type RelationshipObject<RELATIONSHIP_TYPE extends string> =
+	| RelationshipsWithData<RELATIONSHIP_TYPE>
 	| RelationshipsWithLinks
 	| RelationshipsWithMeta;
 
-export interface RelationshipsObject {
-	[k: string]: RelationshipObject;
-}
+export type RelationshipsObject<
+	RELATIONSHIPS extends Relationships = Relationships
+> = { [index in keyof RELATIONSHIPS]: RELATIONSHIPS[index] };
 
 export type AttributesObject<
 	ATTRS extends Attributes = Attributes
