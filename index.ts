@@ -55,8 +55,13 @@ export interface ImplementationInfo {
 	meta?: MetaObject;
 }
 
+type AttributeValue =
+	| JSON.Primitive
+	| Partial<{ [member: string]: AttributeValue }>
+	| AttributeValue[];
+
 interface Attribute {
-	[k: string]: JSON.Value;
+	[k: string]: AttributeValue;
 }
 
 type Attributes = Partial<Attribute>;
